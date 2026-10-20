@@ -1,0 +1,11 @@
+# Runtime harness
+.claude/logs/
+.claude/state/
+evals/report-*.json
+evals/regression/*.json
+docs/quality/session-*.json
+docs/quality/feature-report-*.json
+docs/quality/verification-*.json
+docs/quality/entropy-*.md
+CLAUDE.local.md
+.claude/settings.local.json

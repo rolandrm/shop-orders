@@ -1,0 +1,27 @@
+{
+  "$comment": "Instance projet : le bloc config résout les placeholders du catalogue du moteur. rules (optionnel) ajoute ou remplace des règles par id ; disabled_rules (optionnel) désactive des règles du catalogue.",
+  "config": {
+    "sources_dir": "<sources-dir>",
+    "core_kit": "<CoreKit-name>",
+    "shared_ui": "<SharedUI-name>",
+    "navigation_kit": "<NavigationKit-name>",
+    "localization_helper": "<AppLocale-equivalent>",
+    "session_manager": "<SessionManager-equivalent>",
+    "formatting_service": "<FormattingService-equivalent>",
+    "android_root": "<android-root>",
+    "android_package": "<android-package>",
+    "gradle_plugin_prefix": "<plugin-prefix>",
+    "app_target_dir": "<AppTarget-dir>",
+    "dependency_container": "<DependencyContainer-equivalent>",
+    "session_container": "<SessionContainer-equivalent>",
+    "project": "<PROJECT>",
+    "concrete_kits": "<ConcreteKit-names>",
+    "backend_root": "<backend-root>",
+    "springboot_root": ".",
+    "base_package": "com.shop.orders",
+    "web_root": "<web-root>",
+    "platform_root": "."
+  },
+  "rules": [],
+  "disabled_rules": []
+}

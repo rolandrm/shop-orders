@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "env": {
+    "CLAUDE_CODE_ENABLE_TELEMETRY": "1",
+    "OTEL_SERVICE_NAME": "claude-harness"
+  },
+  "permissions": {
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(harness verify:*)",
+      "Bash(harness evals:*)",
+      "Bash(harness entropy:*)",
+      "Bash(harness gate:*)",
+      "Bash(harness tool count-events:*)",
+      "Bash(harness tool cycle-time:*)",
+      "Bash(harness tool approvals:*)",
+      "Bash(harness tool episode:*)",
+      "Bash(harness tool episode-summary:*)",
+      "Bash(harness tool report-cost:*)",
+      "Bash(harness tool test-stack-detection:*)"
+    ],
+    "deny": [
+      "Read(.env)",
+      "Read(.env.local)",
+      "Read(.env.*.local)",
+      "Read(**/*.pem)",
+      "Bash(rm -rf:*)",
+      "Bash(sudo:*)",
+      "Bash(curl:*)",
+      "Bash(wget:*)"
+    ],
+    "ask": [
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(harness tool db-migrate:*)",
+      "Bash(harness evals --update-baseline:*)",
+      "Write(docs/decisions/**)",
+      "Write(.github/workflows/**)"
+    ]
+  },
+  "enabledPlugins": {
+    "harness@harness-tools": true
+  },
+  "extraKnownMarketplaces": {
+    "harness-tools": {
+      "source": {
+        "source": "github",
+        "repo": "rolandrm/Harness",
+        "ref": "v0.7.17"
+      }
+    }
+  }
+}

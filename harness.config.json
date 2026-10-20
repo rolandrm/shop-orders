@@ -1,0 +1,17 @@
+{
+  "project": {
+    "name": "shop-orders",
+    "description": "",
+    "stacks": []
+  },
+  "global": {},
+  "paths": {
+    "docs": [
+      "docs/"
+    ],
+    "generated": [],
+    "protected": [
+      "docs/decisions/"
+    ]
+  }
+}
