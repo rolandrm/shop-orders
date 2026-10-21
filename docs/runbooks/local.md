@@ -36,3 +36,41 @@ Le contrat `docs/api/openapi.json` n'est jamais édité à la main ; il est comm
 Après tout ajout ou changement de dépendance :
 
 `harness tool deps` (Harness v0.7.19 ou plus ; ce repo y monte juste après ce cycle)
+
+## Image et compose
+
+Prérequis : Docker avec le plugin compose.
+
+Lancer :
+
+```sh
+cp .env.example .env
+docker compose up -d --wait
+```
+
+Arrêter :
+
+```sh
+docker compose down
+```
+
+Consulter les journaux :
+
+```sh
+docker compose logs -f app
+```
+
+Repartir de zéro :
+
+```sh
+docker compose down -v --rmi local
+docker compose up -d --wait --build
+```
+
+## Preuves
+
+```sh
+harness tool image-check --build --requires-env   # image : non root, sonde, aucun secret, refus sans APP_SERVICE_NAME
+harness tool compose-check                        # compose valide, service app healthy, tout supprimé ensuite
+harness tool release-check vX.Y.Z                 # après la fusion et le premier tag : tag sur main, image au registre
+```
