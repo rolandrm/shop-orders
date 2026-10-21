@@ -32,6 +32,8 @@ class ArchitectureTests {
       noClasses()
           .that()
           .resideInAnyPackage("..domain..", "..application..", "..sharedkernel..")
+          .and()
+          .doNotHaveSimpleName("package-info")
           .should()
           .dependOnClassesThat()
           .resideInAnyPackage(
@@ -68,7 +70,8 @@ class ArchitectureTests {
                               "com.shop.orders.platform..", "com.shop.orders.sharedkernel.."))));
 
   @ArchTest
-  static final ArchRule no_field_injection = GeneralCodingRules.NO_CLASSES_SHOULD_USE_FIELD_INJECTION;
+  static final ArchRule no_field_injection =
+      GeneralCodingRules.NO_CLASSES_SHOULD_USE_FIELD_INJECTION;
 
   @ArchTest
   static final ArchRule no_standard_streams =

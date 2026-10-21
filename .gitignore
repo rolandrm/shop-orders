@@ -9,3 +9,9 @@ docs/quality/verification-*.json
 docs/quality/entropy-*.md
 CLAUDE.local.md
 .claude/settings.local.json
+
+# Build
+build/
+.gradle/
+*.iml
+.idea/

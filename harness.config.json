@@ -2,7 +2,19 @@
   "project": {
     "name": "shop-orders",
     "description": "",
-    "stacks": []
+    "stacks": [
+      {
+        "id": "api",
+        "root": ".",
+        "commands": {
+          "build": "./gradlew build -x test",
+          "test": "./gradlew test",
+          "lint": "./gradlew spotlessCheck",
+          "test:integration": "./gradlew integrationTest",
+          "openapi": "./gradlew -q openapiExport"
+        }
+      }
+    ]
   },
   "global": {},
   "paths": {
