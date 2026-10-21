@@ -7,7 +7,8 @@ paths:
 
 # Gradle (Kotlin DSL)
 
-- Versions UNIQUEMENT dans `gradle/libs.versions.toml` ; aucune coordonnée `groupe:artefact:version` en dur
+- Versions UNIQUEMENT dans `gradle/libs.versions.toml` ; aucune coordonnée `groupe:artefact:version` en dur, même sans version
+- Dépôts déclarés une seule fois, dans `settings.gradle.kts` : `dependencyResolutionManagement { repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS; repositories { mavenCentral() } }` ; aucun bloc `repositories` dans `build.gradle.kts`
 - Wrapper commité ; toolchain Java LTS ; `.java-version` pour la CI
 - `dependencyLocking { lockAllConfigurations() }` ; `./gradlew dependencies --write-locks` après toute modification ; lockfile commité
 - Plugins : Spring Boot, dependency-management, Spotless (google-java-format), Error Prone + NullAway
