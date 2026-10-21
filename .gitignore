@@ -15,3 +15,8 @@ build/
 .gradle/
 *.iml
 .idea/
+
+# Environment
+.env
+.env.*
+!.env.example

@@ -25,5 +25,8 @@
     "protected": [
       "docs/decisions/"
     ]
+  },
+  "publish": {
+    "image": "ghcr.io/rolandrm/shop-orders"
   }
 }

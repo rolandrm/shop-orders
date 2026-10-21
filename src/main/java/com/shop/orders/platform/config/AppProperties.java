@@ -6,4 +6,6 @@ import org.springframework.validation.annotation.Validated;
 
 @ConfigurationProperties("app")
 @Validated
-public record AppProperties(@NotBlank String serviceName) {}
+public record AppProperties(
+    @NotBlank(message = "la variable d'environnement APP_SERVICE_NAME est obligatoire")
+        String serviceName) {}

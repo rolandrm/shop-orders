@@ -46,13 +46,15 @@ springdoc:
     enabled: ${API_DOCS_UI:false}
 
 app:
-  service-name: shop-orders
+  service-name: ${APP_SERVICE_NAME:}
 
 ---
 spring:
   config:
     activate:
       on-profile: local
+app:
+  service-name: shop-orders
 
 ---
 spring:

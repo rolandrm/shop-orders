@@ -22,6 +22,7 @@ class AppPropertiesTest {
             ctx -> {
               assertThat(ctx).hasFailed();
               assertThat(ctx.getStartupFailure()).hasStackTraceContaining("serviceName");
+              assertThat(ctx.getStartupFailure()).hasStackTraceContaining("APP_SERVICE_NAME");
             });
   }
 
@@ -31,6 +32,7 @@ class AppPropertiesTest {
         ctx -> {
           assertThat(ctx).hasFailed();
           assertThat(ctx.getStartupFailure()).hasStackTraceContaining("serviceName");
+          assertThat(ctx.getStartupFailure()).hasStackTraceContaining("APP_SERVICE_NAME");
         });
   }
 
