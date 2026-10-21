@@ -1,8 +1,11 @@
 // Template ArchUnit — harness Spring Boot (verrou 2)
-// À copier dans src/test/java/com/shop/orders/ArchitectureTests.java
+// À copier dans <springboot-root>/src/test/java/<base-package-path>/ArchitectureTests.java
 // puis remplacer com.shop.orders. Sur un projet existant : envelopper les règles avec
 // FreezingArchRule.freeze(...) pour geler la dette. Vérifier les noms des constantes
 // GeneralCodingRules selon la version d'ArchUnit installée.
+// allowEmptyShould(true) : la règle vise une couche qui peut ne pas encore
+// exister (socle sans module métier, aucune entité) ; jamais en réglage global
+// (archunit.properties), qui masquerait aussi une règle mal écrite.
 package com.shop.orders;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
@@ -32,6 +35,7 @@ class ArchitectureTests {
       noClasses()
           .that()
           .resideInAnyPackage("..domain..", "..application..", "..sharedkernel..")
+          // package-info porte les annotations du module (@ApplicationModule) : pilote shop-orders
           .and()
           .doNotHaveSimpleName("package-info")
           .should()
@@ -43,7 +47,8 @@ class ArchitectureTests {
               "org.hibernate..",
               "com.fasterxml.jackson..",
               "tools.jackson..",
-              "lombok..");
+              "lombok..")
+          .allowEmptyShould(true);
 
   @ArchTest
   static final ArchRule sharedkernel_is_standalone =
@@ -53,7 +58,8 @@ class ArchitectureTests {
           .should()
           .dependOnClassesThat(
               resideInAPackage("com.shop.orders..")
-                  .and(not(resideInAPackage("com.shop.orders.sharedkernel.."))));
+                  .and(not(resideInAPackage("com.shop.orders.sharedkernel.."))))
+          .allowEmptyShould(true);
 
   // Générique : aucune liste de modules à maintenir
   @ArchTest
@@ -67,7 +73,8 @@ class ArchitectureTests {
                   .and(
                       not(
                           resideInAnyPackage(
-                              "com.shop.orders.platform..", "com.shop.orders.sharedkernel.."))));
+                              "com.shop.orders.platform..", "com.shop.orders.sharedkernel.."))))
+          .allowEmptyShould(true);
 
   @ArchTest
   static final ArchRule no_field_injection =
@@ -109,7 +116,8 @@ class ArchitectureTests {
           .that()
           .areAnnotatedWith(Entity.class)
           .should()
-          .resideInAnyPackage("..infrastructure..", "..internal..");
+          .resideInAnyPackage("..infrastructure..", "..internal..")
+          .allowEmptyShould(true);
 
   @ArchTest
   static final ArchRule web_never_touches_entities =
@@ -118,7 +126,8 @@ class ArchitectureTests {
           .resideInAPackage("..web..")
           .should()
           .dependOnClassesThat()
-          .areAnnotatedWith(Entity.class);
+          .areAnnotatedWith(Entity.class)
+          .allowEmptyShould(true);
 
   @ArchTest
   static final ArchRule spring_data_repositories_are_package_private =
@@ -128,7 +137,8 @@ class ArchitectureTests {
           .and()
           .areAssignableTo(Repository.class)
           .should()
-          .notBePublic();
+          .notBePublic()
+          .allowEmptyShould(true);
 
   @ArchTest
   static final ArchRule no_transactional_controller_classes =
@@ -136,7 +146,8 @@ class ArchitectureTests {
           .that()
           .areAnnotatedWith(RestController.class)
           .should()
-          .beAnnotatedWith(Transactional.class);
+          .beAnnotatedWith(Transactional.class)
+          .allowEmptyShould(true);
 
   @ArchTest
   static final ArchRule no_transactional_controller_methods =
@@ -145,7 +156,8 @@ class ArchitectureTests {
           .areDeclaredInClassesThat()
           .areAnnotatedWith(RestController.class)
           .should()
-          .beAnnotatedWith(Transactional.class);
+          .beAnnotatedWith(Transactional.class)
+          .allowEmptyShould(true);
 
   @ArchTest
   static final ArchRule value_only_in_config =
@@ -154,5 +166,6 @@ class ArchitectureTests {
           .areDeclaredInClassesThat()
           .resideOutsideOfPackage("..platform.config..")
           .should()
-          .beAnnotatedWith(Value.class);
+          .beAnnotatedWith(Value.class)
+          .allowEmptyShould(true);
 }
