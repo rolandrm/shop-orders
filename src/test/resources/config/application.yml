@@ -1,2 +1,18 @@
+# valeurs de test non secrètes des variables obligatoires (RequiredVariables)
+APP_SERVICE_NAME: shop-orders
+SHOP_API_BASE_URL: http://shop-api.test.invalid
+SPRING_DATASOURCE_URL: jdbc:postgresql://unused.invalid:5432/orders
+SPRING_DATASOURCE_USERNAME: orders
+SPRING_DATASOURCE_PASSWORD: not-a-real-password
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
+      - org.springframework.boot.jdbc.autoconfigure.DataSourceTransactionManagerAutoConfiguration
+      - org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration
+      - org.springframework.boot.data.jpa.autoconfigure.DataJpaRepositoriesAutoConfiguration
+      - org.springframework.boot.flyway.autoconfigure.FlywayAutoConfiguration
 app:
   service-name: shop-orders
+  shop-api:
+    base-url: http://shop-api.test.invalid

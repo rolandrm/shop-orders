@@ -29,9 +29,14 @@ dependencies {
     implementation(libs.spring.boot.starter.webmvc)
     implementation(libs.spring.boot.starter.actuator)
     implementation(libs.spring.boot.starter.validation)
+    implementation(libs.spring.boot.starter.data.jpa)
+    implementation(libs.spring.boot.starter.flyway)
+    implementation(libs.flyway.core)
     implementation(libs.spring.modulith.starter.core)
     implementation(libs.springdoc.openapi.webmvc.ui)
     implementation(libs.jspecify)
+    runtimeOnly(libs.postgresql)
+    runtimeOnly(libs.flyway.database.postgresql)
     errorprone(libs.errorprone.core)
     errorprone(libs.nullaway)
 
@@ -40,8 +45,6 @@ dependencies {
     testImplementation(libs.spring.modulith.starter.test)
     testImplementation(libs.spring.modulith.docs)
     testImplementation(libs.archunit.junit5)
-    testImplementation(libs.jakarta.persistence.api)
-    testImplementation(libs.spring.data.commons)
     testImplementation(libs.spring.tx)
     testRuntimeOnly(libs.junit.platform.launcher)
 }
@@ -70,10 +73,25 @@ testing {
         val test by getting(JvmTestSuite::class) { useJUnitJupiter() }
         register<JvmTestSuite>("integrationTest") {
             useJUnitJupiter()
-            dependencies { implementation(project()) }
+            dependencies {
+                implementation(project())
+                implementation(sourceSets["test"].output)
+                implementation(libs.testcontainers.postgresql)
+                implementation(libs.testcontainers.junit.jupiter)
+                implementation(libs.spring.boot.testcontainers)
+                implementation(libs.spring.boot.starter.data.jpa.test)
+            }
             targets { all { testTask.configure { shouldRunAfter(test) } } }
         }
     }
+}
+
+// La suite integrationTest hérite des dépendances de test et voit les classes et ressources de src/test
+configurations.named("integrationTestImplementation") {
+    extendsFrom(configurations.testImplementation.get())
+}
+configurations.named("integrationTestRuntimeOnly") {
+    extendsFrom(configurations.testRuntimeOnly.get())
 }
 
 tasks.named("check") { dependsOn(tasks.named("integrationTest")) }

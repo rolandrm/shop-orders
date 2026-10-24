@@ -1,0 +1,21 @@
+# valeurs de test non secrètes des variables obligatoires (RequiredVariables)
+APP_SERVICE_NAME: shop-orders
+SHOP_API_BASE_URL: http://shop-api.test.invalid
+SPRING_DATASOURCE_URL: jdbc:postgresql://unused.invalid:5432/orders
+SPRING_DATASOURCE_USERNAME: orders
+SPRING_DATASOURCE_PASSWORD: not-a-real-password
+spring:
+  datasource:
+    # remplacées par @ServiceConnection (conteneur PostgreSQL) ; valeurs non secrètes
+    url: jdbc:postgresql://unused.invalid:5432/orders
+    username: orders
+    password: not-a-real-password
+  flyway:
+    enabled: true
+app:
+  migrate:
+    # les tests migrate/seed tournent dans la JVM du worker Gradle : ne pas la terminer
+    exit-on-completion: false
+  service-name: shop-orders
+  shop-api:
+    base-url: http://shop-api.test.invalid

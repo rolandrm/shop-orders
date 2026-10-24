@@ -1,0 +1,6 @@
+{
+  "statusCode": 500,
+  "code": "INTERNAL_ERROR",
+  "message": "Unexpected error",
+  "details": []
+}

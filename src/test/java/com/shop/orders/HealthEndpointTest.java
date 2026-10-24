@@ -2,16 +2,20 @@ package com.shop.orders;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.shop.orders.orders.domain.OrderRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.RestClient;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class HealthEndpointTest {
+
+  @MockitoBean OrderRepository orderRepository; // pas de base dans la suite test
 
   @LocalServerPort int port;
 

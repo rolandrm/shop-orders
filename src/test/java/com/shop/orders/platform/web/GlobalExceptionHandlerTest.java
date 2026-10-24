@@ -73,6 +73,50 @@ class GlobalExceptionHandlerTest {
   }
 
   @Test
+  void unavailableMapsTo503() throws Exception {
+    expectError("/fixture/unavailable", 503, "CATALOG_UNAVAILABLE");
+  }
+
+  @Test
+  void missingHeaderGives400ValidationError() throws Exception {
+    expectError("/fixture/header", 400, "VALIDATION_ERROR");
+  }
+
+  @Test
+  void unreadableUuidGives400ValidationError() throws Exception {
+    expectError("/fixture/uuid?id=pas-un-uuid", 400, "VALIDATION_ERROR");
+  }
+
+  @Test
+  void outOfBoundsParameterGives400ValidationError() throws Exception {
+    expectError("/fixture/bounded?limit=0", 400, "VALIDATION_ERROR");
+    expectError("/fixture/bounded?limit=101", 400, "VALIDATION_ERROR");
+  }
+
+  @Test
+  void unknownJsonFieldGives400ValidationError() throws Exception {
+    mvc.perform(
+            post("/fixture/body")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"a\",\"inconnu\":1}"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+        .andExpect(jsonPath("$.traceId").isNotEmpty());
+  }
+
+  @Test
+  void unreadableBodyGives400WithoutInternalDetail() throws Exception {
+    MvcResult result =
+        mvc.perform(post("/fixture/body").contentType(MediaType.APPLICATION_JSON).content("{"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+            .andReturn();
+    assertThat(result.getResponse().getContentAsString())
+        .doesNotContain("Exception")
+        .doesNotContain("com.");
+  }
+
+  @Test
   void unknownRouteGives404InCommonFormat() throws Exception {
     mvc.perform(get("/does-not-exist"))
         .andExpect(status().isNotFound())

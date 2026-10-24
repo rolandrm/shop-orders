@@ -55,6 +55,8 @@ jobs:
         run: node "$HARNESS" verify --summary
       - name: Construire l'image (preuve, sans publication)
         run: docker build --file Dockerfile --tag harness-check .
+      - name: Construire l'image migrate (preuve, sans publication)
+        run: docker build --file Dockerfile --target migrate --tag harness-check-migrate .
 
   publish-image:
     name: Publier l'image
@@ -78,10 +80,21 @@ jobs:
             echo "::error::ghcr.io/rolandrm/shop-orders:$VERSION existe déjà : une version publiée ne se republie pas"
             exit 1
           fi
+          if docker manifest inspect "ghcr.io/rolandrm/shop-orders-migrate:$VERSION" > /dev/null 2>&1; then
+            echo "::error::ghcr.io/rolandrm/shop-orders-migrate:$VERSION existe déjà : une version publiée ne se republie pas"
+            exit 1
+          fi
           docker build --file Dockerfile \
             --label "org.opencontainers.image.source=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}" \
             --label "org.opencontainers.image.version=$VERSION" \
             --label "org.opencontainers.image.revision=${GITHUB_SHA}" \
             --tag "ghcr.io/rolandrm/shop-orders:$VERSION" .
+          docker build --file Dockerfile --target migrate \
+            --label "org.opencontainers.image.source=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}" \
+            --label "org.opencontainers.image.version=$VERSION" \
+            --label "org.opencontainers.image.revision=${GITHUB_SHA}" \
+            --tag "ghcr.io/rolandrm/shop-orders-migrate:$VERSION" .
           docker push "ghcr.io/rolandrm/shop-orders:$VERSION"
           echo "Publiée : ghcr.io/rolandrm/shop-orders:$VERSION"
+          docker push "ghcr.io/rolandrm/shop-orders-migrate:$VERSION"
+          echo "Publiée : ghcr.io/rolandrm/shop-orders-migrate:$VERSION"

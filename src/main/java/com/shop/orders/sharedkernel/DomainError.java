@@ -8,6 +8,7 @@ public record DomainError(Kind kind, String code, String message) {
     VALIDATION,
     NOT_FOUND,
     CONFLICT,
+    UNAVAILABLE,
     UNEXPECTED
   }
 }
