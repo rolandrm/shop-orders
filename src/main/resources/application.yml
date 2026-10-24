@@ -2,6 +2,12 @@ spring:
   threads:
     virtual:
       enabled: true
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+  flyway:
+    enabled: false # activé par le profil migrate (étape de migration dédiée)
   jpa:
     open-in-view: false
     hibernate:
@@ -47,6 +53,10 @@ springdoc:
 
 app:
   service-name: ${APP_SERVICE_NAME:}
+  shop-api:
+    base-url: ${SHOP_API_BASE_URL:}
+    connect-timeout: 2s
+    read-timeout: 3s
 
 ---
 spring:
@@ -61,6 +71,29 @@ spring:
   config:
     activate:
       on-profile: test
+
+---
+spring:
+  config:
+    activate:
+      on-profile: migrate
+  main:
+    web-application-type: none
+  flyway:
+    enabled: true
+    ignore-migration-patterns: "*:missing"
+app:
+  service-name: shop-orders-migrate
+  shop-api:
+    base-url: http://shop-api.invalid # jamais appelée par le conteneur de migration
+
+---
+spring:
+  config:
+    activate:
+      on-profile: seed
+  flyway:
+    locations: classpath:db/migration,classpath:db/seed # données de démonstration, jamais en production
 
 ---
 spring:

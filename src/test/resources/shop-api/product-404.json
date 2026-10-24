@@ -1,0 +1,6 @@
+{
+  "statusCode": 404,
+  "code": "PRODUCT_NOT_FOUND",
+  "message": "Product not found",
+  "details": []
+}

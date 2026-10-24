@@ -9,11 +9,15 @@ import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 /** Convertit toute exception en {@link ApiError}. */
 @RestControllerAdvice
@@ -29,9 +33,21 @@ public class GlobalExceptionHandler {
           case VALIDATION -> HttpStatus.BAD_REQUEST;
           case NOT_FOUND -> HttpStatus.NOT_FOUND;
           case CONFLICT -> HttpStatus.CONFLICT;
+          case UNAVAILABLE -> HttpStatus.SERVICE_UNAVAILABLE;
           case UNEXPECTED -> HttpStatus.INTERNAL_SERVER_ERROR;
         };
     return build(status, error.code(), error.message(), List.of());
+  }
+
+  /** Rejets de requête (en-tête, identifiant, corps, paramètre) : 400, message fixe. */
+  @ExceptionHandler({
+    MissingRequestHeaderException.class,
+    MethodArgumentTypeMismatchException.class,
+    HttpMessageNotReadableException.class,
+    HandlerMethodValidationException.class
+  })
+  ResponseEntity<ApiError> handleBadRequest(Exception ex) {
+    return build(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Requête invalide", List.of());
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)

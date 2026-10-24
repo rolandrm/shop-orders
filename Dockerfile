@@ -9,6 +9,17 @@ COPY src/ src/
 RUN ./gradlew bootJar --no-daemon \
     && cp "$(ls build/libs/*.jar | grep -v -- '-plain' | head -n 1)" /workspace/app.jar
 
+FROM eclipse-temurin:21.0.12.1_1-jre-alpine-3.24 AS migrate
+WORKDIR /app
+
+COPY --from=build --chown=1000:1000 /workspace/app.jar /app/app.jar
+
+USER 1000:1000
+
+LABEL io.harness.seed="java -jar /app/app.jar --spring.profiles.active=migrate,seed"
+
+CMD ["java", "-jar", "/app/app.jar", "--spring.profiles.active=migrate"]
+
 FROM eclipse-temurin:21.0.12.1_1-jre-alpine-3.24
 WORKDIR /app
 

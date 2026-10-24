@@ -1,0 +1,685 @@
+{
+  "components": {
+    "schemas": {}
+  },
+  "info": {
+    "title": "shop-api",
+    "version": "1.0.0"
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/": {
+      "get": {
+        "description": "Returns a fixed plain-text greeting. Demonstration route: it takes no parameter and reads no data.",
+        "operationId": "AppController_getHello",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "The greeting, as plain text."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "code": {
+                      "description": "Stable machine-readable error identifier in upper snake case, for example VALIDATION_ERROR or PRODUCT_NOT_FOUND. Branch on it rather than on message.",
+                      "pattern": "^[A-Z][A-Z0-9_]*$",
+                      "type": "string"
+                    },
+                    "details": {
+                      "description": "One entry per invalid input. Empty when the error has no per-parameter detail.",
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "message": {
+                            "description": "What is wrong with this parameter.",
+                            "type": "string"
+                          },
+                          "path": {
+                            "description": "Name of the invalid parameter. Empty when the issue applies to the request as a whole, for example an unknown parameter.",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "message": {
+                      "description": "Human-readable explanation, in English. Its wording may change: do not parse it.",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code of the response, repeated in the body.",
+                      "maximum": 599,
+                      "minimum": 400,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "details"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Unexpected error on the server side, not caused by the request."
+          }
+        },
+        "summary": "Check that the service responds",
+        "tags": [
+          "App"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "description": "Answers 200 as soon as the application is ready to serve requests. It queries no external dependency, such as the database, and takes no parameter.",
+        "operationId": "HealthController_check",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "status": {
+                      "description": "Always \"ok\" when the application is running and able to answer.",
+                      "enum": [
+                        "ok"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "The application is running."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "code": {
+                      "description": "Stable machine-readable error identifier in upper snake case, for example VALIDATION_ERROR or PRODUCT_NOT_FOUND. Branch on it rather than on message.",
+                      "pattern": "^[A-Z][A-Z0-9_]*$",
+                      "type": "string"
+                    },
+                    "details": {
+                      "description": "One entry per invalid input. Empty when the error has no per-parameter detail.",
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "message": {
+                            "description": "What is wrong with this parameter.",
+                            "type": "string"
+                          },
+                          "path": {
+                            "description": "Name of the invalid parameter. Empty when the issue applies to the request as a whole, for example an unknown parameter.",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "message": {
+                      "description": "Human-readable explanation, in English. Its wording may change: do not parse it.",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code of the response, repeated in the body.",
+                      "maximum": 599,
+                      "minimum": 400,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "details"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Unexpected error on the server side, not caused by the request."
+          }
+        },
+        "summary": "Check that the application is running",
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/v1/products": {
+      "get": {
+        "description": "Returns one page of products, ordered by ascending id. Optionally keeps only the products priced in one currency. Pagination is cursor-based: pass the nextCursor of a response as cursor to get the next page.",
+        "operationId": "CatalogController_listProducts_v1",
+        "parameters": [
+          {
+            "description": "Maximum number of products in the page, from 1 to 100. Defaults to 20. A value outside this range is rejected with 400, never adjusted.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Pagination token: the nextCursor value of a previous response. Returns the products that follow the last product of that page. Omit it to get the first page. A value that is not a token issued by this API is rejected with 400.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "maxLength": 200,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Keeps only the products whose price is expressed in this currency: EUR, USD or GBP. The stored currency is matched as is, with no conversion; the value is case-sensitive. Omit it to get products in every currency.",
+            "in": "query",
+            "name": "currency",
+            "required": false,
+            "schema": {
+              "enum": [
+                "EUR",
+                "USD",
+                "GBP"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "items": {
+                      "description": "Products of the page, ordered by ascending id. At most 100 entries.",
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "id": {
+                            "description": "Unique identifier of the product, a UUID.",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                            "type": "string"
+                          },
+                          "name": {
+                            "description": "Display name of the product.",
+                            "maxLength": 200,
+                            "minLength": 1,
+                            "type": "string"
+                          },
+                          "price": {
+                            "additionalProperties": false,
+                            "description": "Unit price of the product.",
+                            "properties": {
+                              "amount": {
+                                "description": "Decimal amount as a string with exactly two decimals, for example \"19.90\". Never a JSON number.",
+                                "pattern": "^\\d+\\.\\d{2}$",
+                                "type": "string"
+                              },
+                              "currency": {
+                                "description": "Currency of the amount: EUR, USD or GBP.",
+                                "enum": [
+                                  "EUR",
+                                  "USD",
+                                  "GBP"
+                                ],
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "amount",
+                              "currency"
+                            ],
+                            "type": "object"
+                          },
+                          "stock": {
+                            "description": "Number of units available for sale at read time. 0 means out of stock. Never null.",
+                            "maximum": 2147483647,
+                            "minimum": 0,
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "price",
+                          "stock"
+                        ],
+                        "type": "object"
+                      },
+                      "maxItems": 100,
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "description": "Token to pass as cursor to get the next page, or null when no product follows the last one of items.",
+                      "nullable": true,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "nextCursor"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "One page of products, possibly empty. nextCursor is null when no product follows the last one of items."
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "code": {
+                      "description": "Stable machine-readable error identifier in upper snake case, for example VALIDATION_ERROR or PRODUCT_NOT_FOUND. Branch on it rather than on message.",
+                      "pattern": "^[A-Z][A-Z0-9_]*$",
+                      "type": "string"
+                    },
+                    "details": {
+                      "description": "One entry per invalid input. Empty when the error has no per-parameter detail.",
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "message": {
+                            "description": "What is wrong with this parameter.",
+                            "type": "string"
+                          },
+                          "path": {
+                            "description": "Name of the invalid parameter. Empty when the issue applies to the request as a whole, for example an unknown parameter.",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "message": {
+                      "description": "Human-readable explanation, in English. Its wording may change: do not parse it.",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code of the response, repeated in the body.",
+                      "maximum": 599,
+                      "minimum": 400,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "details"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "The request is invalid: a parameter is unknown, out of range or malformed. details lists each invalid parameter."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "code": {
+                      "description": "Stable machine-readable error identifier in upper snake case, for example VALIDATION_ERROR or PRODUCT_NOT_FOUND. Branch on it rather than on message.",
+                      "pattern": "^[A-Z][A-Z0-9_]*$",
+                      "type": "string"
+                    },
+                    "details": {
+                      "description": "One entry per invalid input. Empty when the error has no per-parameter detail.",
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "message": {
+                            "description": "What is wrong with this parameter.",
+                            "type": "string"
+                          },
+                          "path": {
+                            "description": "Name of the invalid parameter. Empty when the issue applies to the request as a whole, for example an unknown parameter.",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "message": {
+                      "description": "Human-readable explanation, in English. Its wording may change: do not parse it.",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code of the response, repeated in the body.",
+                      "maximum": 599,
+                      "minimum": 400,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "details"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Unexpected error on the server side, not caused by the request."
+          }
+        },
+        "summary": "List products",
+        "tags": [
+          "Catalog"
+        ]
+      }
+    },
+    "/v1/products/{id}": {
+      "get": {
+        "description": "Returns the product identified by id. This route accepts no query parameter.",
+        "operationId": "CatalogController_getProduct_v1",
+        "parameters": [
+          {
+            "description": "Identifier of the product, a UUID. Upper-case and lower-case spellings designate the same product. An id that matches no product gives a 404.",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": {
+                      "description": "Unique identifier of the product, a UUID.",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                      "type": "string"
+                    },
+                    "name": {
+                      "description": "Display name of the product.",
+                      "maxLength": 200,
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "price": {
+                      "additionalProperties": false,
+                      "description": "Unit price of the product.",
+                      "properties": {
+                        "amount": {
+                          "description": "Decimal amount as a string with exactly two decimals, for example \"19.90\". Never a JSON number.",
+                          "pattern": "^\\d+\\.\\d{2}$",
+                          "type": "string"
+                        },
+                        "currency": {
+                          "description": "Currency of the amount: EUR, USD or GBP.",
+                          "enum": [
+                            "EUR",
+                            "USD",
+                            "GBP"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "amount",
+                        "currency"
+                      ],
+                      "type": "object"
+                    },
+                    "stock": {
+                      "description": "Number of units available for sale at read time. 0 means out of stock. Never null.",
+                      "maximum": 2147483647,
+                      "minimum": 0,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "price",
+                    "stock"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "The requested product."
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "code": {
+                      "description": "Stable machine-readable error identifier in upper snake case, for example VALIDATION_ERROR or PRODUCT_NOT_FOUND. Branch on it rather than on message.",
+                      "pattern": "^[A-Z][A-Z0-9_]*$",
+                      "type": "string"
+                    },
+                    "details": {
+                      "description": "One entry per invalid input. Empty when the error has no per-parameter detail.",
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "message": {
+                            "description": "What is wrong with this parameter.",
+                            "type": "string"
+                          },
+                          "path": {
+                            "description": "Name of the invalid parameter. Empty when the issue applies to the request as a whole, for example an unknown parameter.",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "message": {
+                      "description": "Human-readable explanation, in English. Its wording may change: do not parse it.",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code of the response, repeated in the body.",
+                      "maximum": 599,
+                      "minimum": 400,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "details"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "The request is invalid: a parameter is unknown, out of range or malformed. details lists each invalid parameter."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "code": {
+                      "description": "Stable machine-readable error identifier in upper snake case, for example VALIDATION_ERROR or PRODUCT_NOT_FOUND. Branch on it rather than on message.",
+                      "pattern": "^[A-Z][A-Z0-9_]*$",
+                      "type": "string"
+                    },
+                    "details": {
+                      "description": "One entry per invalid input. Empty when the error has no per-parameter detail.",
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "message": {
+                            "description": "What is wrong with this parameter.",
+                            "type": "string"
+                          },
+                          "path": {
+                            "description": "Name of the invalid parameter. Empty when the issue applies to the request as a whole, for example an unknown parameter.",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "message": {
+                      "description": "Human-readable explanation, in English. Its wording may change: do not parse it.",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code of the response, repeated in the body.",
+                      "maximum": 599,
+                      "minimum": 400,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "details"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "No product has this id. code is PRODUCT_NOT_FOUND."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "code": {
+                      "description": "Stable machine-readable error identifier in upper snake case, for example VALIDATION_ERROR or PRODUCT_NOT_FOUND. Branch on it rather than on message.",
+                      "pattern": "^[A-Z][A-Z0-9_]*$",
+                      "type": "string"
+                    },
+                    "details": {
+                      "description": "One entry per invalid input. Empty when the error has no per-parameter detail.",
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "message": {
+                            "description": "What is wrong with this parameter.",
+                            "type": "string"
+                          },
+                          "path": {
+                            "description": "Name of the invalid parameter. Empty when the issue applies to the request as a whole, for example an unknown parameter.",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "message": {
+                      "description": "Human-readable explanation, in English. Its wording may change: do not parse it.",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code of the response, repeated in the body.",
+                      "maximum": 599,
+                      "minimum": 400,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "statusCode",
+                    "code",
+                    "message",
+                    "details"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Unexpected error on the server side, not caused by the request."
+          }
+        },
+        "summary": "Get a product",
+        "tags": [
+          "Catalog"
+        ]
+      }
+    }
+  },
+  "tags": []
+}

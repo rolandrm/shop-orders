@@ -30,6 +30,200 @@
           }
         },
         "type": "object"
+      },
+      "MoneyResponse": {
+        "description": "Montant d'argent : chaîne décimale exacte et devise ISO 4217.",
+        "properties": {
+          "amount": {
+            "description": "Montant en notation décimale, toujours avec deux décimales.",
+            "example": "20.00",
+            "pattern": "^\\d{1,15}\\.\\d{2}$",
+            "type": "string"
+          },
+          "currency": {
+            "description": "Code de la devise du montant.",
+            "enum": [
+              "EUR",
+              "USD",
+              "GBP"
+            ],
+            "example": "EUR",
+            "type": "string"
+          }
+        },
+        "required": [
+          "amount",
+          "currency"
+        ],
+        "type": "object"
+      },
+      "OrderLineResponse": {
+        "description": "Ligne d'une commande : nom et prix du produit figés au moment de l'achat.",
+        "properties": {
+          "lineTotal": {
+            "$ref": "#/components/schemas/MoneyResponse",
+            "description": "Total de la ligne : prix unitaire multiplié par la quantité."
+          },
+          "productId": {
+            "description": "Identifiant du produit dans le catalogue.",
+            "format": "uuid",
+            "type": "string"
+          },
+          "productName": {
+            "description": "Nom du produit copié du catalogue à la création de la commande.",
+            "example": "Clavier",
+            "type": "string"
+          },
+          "quantity": {
+            "description": "Quantité commandée, de 1 à 100.",
+            "example": 2,
+            "format": "int32",
+            "type": "integer"
+          },
+          "unitPrice": {
+            "$ref": "#/components/schemas/MoneyResponse",
+            "description": "Prix unitaire copié du catalogue à la création de la commande."
+          }
+        },
+        "required": [
+          "lineTotal",
+          "productId",
+          "productName",
+          "quantity",
+          "unitPrice"
+        ],
+        "type": "object"
+      },
+      "OrderListResponse": {
+        "description": "Page de commandes d'un client, les plus récentes d'abord.",
+        "properties": {
+          "items": {
+            "description": "Résumés des commandes de la page.",
+            "items": {
+              "$ref": "#/components/schemas/OrderSummaryResponse"
+            },
+            "type": "array"
+          },
+          "nextCursor": {
+            "description": "Curseur opaque à renvoyer dans le paramètre cursor pour obtenir la page suivante ; absent sur la dernière page.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "OrderResponse": {
+        "description": "Commande d'un client, avec ses lignes et son total.",
+        "properties": {
+          "createdAt": {
+            "description": "Date de création de la commande, ISO 8601 en UTC.",
+            "example": "2026-10-22T10:15:30Z",
+            "format": "date-time",
+            "type": "string"
+          },
+          "customerId": {
+            "description": "Identifiant du client propriétaire de la commande.",
+            "format": "uuid",
+            "type": "string"
+          },
+          "id": {
+            "description": "Identifiant de la commande.",
+            "format": "uuid",
+            "type": "string"
+          },
+          "items": {
+            "description": "Lignes de la commande, de 1 à 50, dans l'ordre de la demande.",
+            "items": {
+              "$ref": "#/components/schemas/OrderLineResponse"
+            },
+            "type": "array"
+          },
+          "total": {
+            "$ref": "#/components/schemas/MoneyResponse",
+            "description": "Total de la commande : somme des totaux de ligne, dans une seule devise."
+          }
+        },
+        "required": [
+          "createdAt",
+          "customerId",
+          "id",
+          "items",
+          "total"
+        ],
+        "type": "object"
+      },
+      "OrderSummaryResponse": {
+        "description": "Résumé d'une commande dans la liste, sans ses lignes.",
+        "properties": {
+          "createdAt": {
+            "description": "Date de création de la commande, ISO 8601 en UTC.",
+            "example": "2026-10-22T10:15:30Z",
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "description": "Identifiant de la commande.",
+            "format": "uuid",
+            "type": "string"
+          },
+          "itemCount": {
+            "description": "Nombre de lignes de la commande.",
+            "example": 2,
+            "format": "int32",
+            "type": "integer"
+          },
+          "total": {
+            "$ref": "#/components/schemas/MoneyResponse",
+            "description": "Total de la commande."
+          }
+        },
+        "required": [
+          "createdAt",
+          "id",
+          "itemCount",
+          "total"
+        ],
+        "type": "object"
+      },
+      "PlaceOrderItemRequest": {
+        "description": "Un produit et la quantité voulue.",
+        "properties": {
+          "productId": {
+            "description": "Identifiant du produit dans le catalogue.",
+            "format": "uuid",
+            "type": "string"
+          },
+          "quantity": {
+            "description": "Quantité voulue, de 1 à 100.",
+            "example": 2,
+            "format": "int32",
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "productId",
+          "quantity"
+        ],
+        "type": "object"
+      },
+      "PlaceOrderRequest": {
+        "description": "Demande de commande : les produits et les quantités voulus, sans prix.",
+        "properties": {
+          "items": {
+            "description": "Lignes demandées, de 1 à 50, un produit au plus une fois.",
+            "items": {
+              "$ref": "#/components/schemas/PlaceOrderItemRequest"
+            },
+            "maxItems": 50,
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "type": "object"
       }
     }
   },
@@ -66,12 +260,251 @@
         },
         "summary": "Télécharger le contrat OpenAPI du service"
       }
+    },
+    "/v1/orders": {
+      "get": {
+        "description": "Renvoie une page des commandes du client, les plus récentes d'abord, avec un curseur pour la page suivante.",
+        "operationId": "list",
+        "parameters": [
+          {
+            "description": "Identifiant du client (UUID) dont on liste les commandes.",
+            "in": "header",
+            "name": "X-Customer-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Nombre maximal de commandes dans la page, de 1 à 100.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "format": "int32",
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Curseur opaque issu du nextCursor de la page précédente ; absent pour la première page.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderListResponse"
+                }
+              }
+            },
+            "description": "Une page de commandes ; nextCursor est absent sur la dernière page."
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "En-tête, limit ou cursor invalide (VALIDATION_ERROR)."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Erreur interne (INTERNAL_ERROR)."
+          }
+        },
+        "summary": "Lister les commandes d'un client",
+        "tags": [
+          "Commandes"
+        ]
+      },
+      "post": {
+        "description": "Crée la commande du client à partir de produits et de quantités. Le nom et le prix de chaque produit sont lus dans le catalogue et figés dans la commande.",
+        "operationId": "place",
+        "parameters": [
+          {
+            "description": "Identifiant du client (UUID) pour le compte duquel on agit.",
+            "in": "header",
+            "name": "X-Customer-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlaceOrderRequest"
+              }
+            }
+          },
+          "description": "Produits et quantités voulus, sans prix : le catalogue fait foi.",
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponse"
+                }
+              }
+            },
+            "description": "Commande créée ; l'en-tête Location donne son adresse."
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Requête invalide (VALIDATION_ERROR : corps, en-tête) ou produit inconnu (PRODUCT_NOT_FOUND)."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Stock insuffisant (INSUFFICIENT_STOCK) ou devises différentes (MIXED_CURRENCIES)."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Erreur interne (INTERNAL_ERROR)."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Catalogue indisponible (CATALOG_UNAVAILABLE) ; réessayer plus tard."
+          }
+        },
+        "summary": "Passer une commande",
+        "tags": [
+          "Commandes"
+        ]
+      }
+    },
+    "/v1/orders/{orderId}": {
+      "get": {
+        "description": "Renvoie une commande du client avec les prix figés à l'achat, sans consulter le catalogue.",
+        "operationId": "get",
+        "parameters": [
+          {
+            "description": "Identifiant du client (UUID) propriétaire de la commande.",
+            "in": "header",
+            "name": "X-Customer-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Identifiant de la commande à lire (UUID).",
+            "in": "path",
+            "name": "orderId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderResponse"
+                }
+              }
+            },
+            "description": "La commande demandée."
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Identifiant ou en-tête invalide (VALIDATION_ERROR)."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Commande introuvable (ORDER_NOT_FOUND), y compris celle d'un autre client."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Erreur interne (INTERNAL_ERROR)."
+          }
+        },
+        "summary": "Lire une commande",
+        "tags": [
+          "Commandes"
+        ]
+      }
     }
   },
   "servers": [
     {
       "description": "Generated server url",
       "url": "http://localhost"
+    }
+  ],
+  "tags": [
+    {
+      "description": "Passer, relire et lister les commandes d'un client.",
+      "name": "Commandes"
     }
   ]
 }
