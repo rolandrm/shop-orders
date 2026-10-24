@@ -7,7 +7,7 @@
         "id": "api",
         "root": ".",
         "commands": {
-          "build": "./gradlew build -x test",
+          "build": "./gradlew build -x test -x integrationTest",
           "test": "./gradlew test",
           "lint": "./gradlew spotlessCheck",
           "test:integration": "./gradlew integrationTest",

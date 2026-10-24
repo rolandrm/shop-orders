@@ -2,6 +2,7 @@ package com.shop.orders.orders.infrastructure;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import jakarta.validation.constraints.Size;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -63,6 +64,19 @@ class ShopApiContractConformanceIT {
         assertThat(body.has("stock")).as(name + " stock").isTrue();
       }
     }
+  }
+
+  @Test
+  void nameBoundOfTheAdapterEqualsTheMaxLengthOfTheContract() throws NoSuchFieldException {
+    int declared = successSchema().path("properties").path("name").path("maxLength").asInt(-1);
+    Size size =
+        ShopApiProductCatalog.ProductResponse.class
+            .getDeclaredField("name")
+            .getAnnotation(Size.class);
+
+    assertThat(declared).as("maxLength de name dans le contrat").isEqualTo(200);
+    assertThat(size).as("@Size sur le champ name de ProductResponse").isNotNull();
+    assertThat(size.max()).isEqualTo(declared);
   }
 
   private static JsonNode successSchema() {

@@ -121,12 +121,60 @@ class ShopApiProductCatalogContractIT extends ProductCatalogContract {
   }
 
   @Test
+  void nameOf200CharactersIsKeptWhole() {
+    String name = "a".repeat(200);
+    expectGet(KNOWN.id()).andRespond(withSuccess(bodyWithName(name), json()));
+
+    Result<CatalogProduct> result = catalog.find(KNOWN.id());
+
+    assertThat(result).isInstanceOf(Result.Success.class);
+    assertThat(((Result.Success<CatalogProduct>) result).value().name()).isEqualTo(name);
+  }
+
+  @Test
+  void nameOf1CharacterIsKept() {
+    expectGet(KNOWN.id()).andRespond(withSuccess(bodyWithName("a"), json()));
+
+    Result<CatalogProduct> result = catalog.find(KNOWN.id());
+
+    assertThat(result).isInstanceOf(Result.Success.class);
+    assertThat(((Result.Success<CatalogProduct>) result).value().name()).isEqualTo("a");
+  }
+
+  @Test
+  void nameOf201CharactersIsReportedAsUnavailable() {
+    expectGet(KNOWN.id()).andRespond(withSuccess(bodyWithName("a".repeat(201)), json()));
+
+    assertUnavailable();
+  }
+
+  @Test
+  void emptyNameIsReportedAsUnavailable() {
+    expectGet(KNOWN.id()).andRespond(withSuccess(bodyWithName(""), json()));
+
+    assertUnavailable();
+  }
+
+  @Test
+  void blankNameIsReportedAsUnavailable() {
+    expectGet(KNOWN.id()).andRespond(withSuccess(bodyWithName("   "), json()));
+
+    assertUnavailable();
+  }
+
+  @Test
   void callsTheDocumentedPathOnce() {
     givenProduct(KNOWN);
 
     catalog.find(KNOWN.id());
 
     server.verify();
+  }
+
+  private static String bodyWithName(String name) {
+    return "{\"id\": \"018f0000-0000-7000-8000-000000000001\", \"name\": \""
+        + name
+        + "\", \"price\": {\"amount\": \"10.00\", \"currency\": \"EUR\"}, \"stock\": 7}";
   }
 
   private void respondWith(HttpStatus status, String fixtureName) {

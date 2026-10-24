@@ -13,6 +13,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,9 +25,10 @@ import org.springframework.web.client.RestClientException;
 
 /**
  * Adaptateur du port {@link ProductCatalog} : {@code GET /v1/products/{id}} sur shop-api. Seul un
- * {@code 200} lisible et valide donne un produit ; {@code 404} donne « inconnu » ; tout le reste
- * (autre statut, corps illisible, délai, connexion) donne « indisponible ». Seuls le statut ou le
- * type d'erreur sont journalisés, jamais le corps.
+ * {@code 200} lisible et valide (nom de 1 à 200 caractères, non blanc) donne un produit ; un nom
+ * vide, blanc ou de plus de 200 caractères donne « indisponible » ; {@code 404} donne « inconnu » ;
+ * tout le reste (autre statut, corps illisible, délai, connexion) donne « indisponible ». Seuls le
+ * statut ou le type d'erreur sont journalisés, jamais le corps.
  */
 @Component
 class ShopApiProductCatalog implements ProductCatalog {
@@ -76,7 +78,7 @@ class ShopApiProductCatalog implements ProductCatalog {
   @JsonIgnoreProperties(ignoreUnknown = true)
   record ProductResponse(
       @NotNull UUID id,
-      @NotBlank String name,
+      @NotBlank @Size(max = 200) String name,
       @NotNull @Valid PriceResponse price,
       @NotNull @Min(0) Integer stock) {
 
