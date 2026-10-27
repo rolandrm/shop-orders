@@ -1,5 +1,9 @@
 import net.ltgt.gradle.errorprone.CheckSeverity
 import net.ltgt.gradle.errorprone.errorprone
+import org.gradle.api.tasks.testing.TestDescriptor
+import org.gradle.api.tasks.testing.TestResult
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
     java
@@ -9,7 +13,7 @@ plugins {
     alias(libs.plugins.errorprone)
 }
 
-version = "0.2.0"
+version = "0.2.1"
 
 springBoot {
     buildInfo { excludes.set(setOf("time")) }
@@ -98,6 +102,25 @@ tasks.named("check") { dependsOn(tasks.named("integrationTest")) }
 
 tasks.withType<Test>().configureEach {
     systemProperty("project.version", project.version.toString())
+    testLogging {
+        events(TestLogEvent.FAILED)
+        exceptionFormat = TestExceptionFormat.FULL
+        showExceptions = true
+        showCauses = true
+        showStackTraces = true
+        showStandardStreams = false
+    }
+    // Récapitulatif au niveau lifecycle (jamais println : openapiExport n'affiche que le JSON)
+    afterSuite(
+        KotlinClosure2<TestDescriptor, TestResult, Unit>({ descriptor, result ->
+            if (descriptor.parent == null) {
+                logger.lifecycle(
+                    "Tests : ${result.testCount} exécutés, ${result.successfulTestCount} passés, " +
+                        "${result.failedTestCount} échoués, ${result.skippedTestCount} ignorés"
+                )
+            }
+        })
+    )
 }
 
 // Export du contrat OpenAPI sans serveur ni base : lance OpenApiExportTest puis affiche build/openapi.json

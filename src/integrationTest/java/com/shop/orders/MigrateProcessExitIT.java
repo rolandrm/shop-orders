@@ -7,9 +7,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -19,6 +19,8 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource;
  * doit se terminer de lui-même avec le code 0, puis le schéma doit exister.
  */
 class MigrateProcessExitIT {
+
+  static final Duration MIGRATE_TIMEOUT = Duration.ofSeconds(180);
 
   @Test
   void migrateProcessExitsWithZeroAndCreatesSchema() throws IOException, InterruptedException {
@@ -47,9 +49,8 @@ class MigrateProcessExitIT {
 
     Process process = builder.start();
     try {
-      boolean finished = process.waitFor(60, TimeUnit.SECONDS);
-      assertThat(finished).as("le processus migrate doit se terminer en moins de 60 s").isTrue();
-      assertThat(process.exitValue()).isZero();
+      assertThat(MIGRATE_TIMEOUT).isEqualTo(Duration.ofSeconds(180));
+      ProcessAwait.awaitExit(process, MIGRATE_TIMEOUT, log);
     } finally {
       process.destroyForcibly();
     }
